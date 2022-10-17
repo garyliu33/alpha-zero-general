@@ -52,6 +52,20 @@ class MCTS():
         probs = [x / counts_sum for x in counts]
         return probs
 
+    def getDirectActionProb(self, canonicalBoard):
+        s = self.game.stringRepresentation(canonicalBoard)
+        if s not in self.Es:
+            self.Es[s] = self.game.getGameEnded(canonicalBoard, 1)
+        if self.Es[s] != 0:
+            # terminal node
+            return [0] * self.game.getActionSize()
+
+        self.Ps[s], v = self.nnet.predict(canonicalBoard)
+        valids = self.game.getValidMoves(canonicalBoard, 1)
+        self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
+        return self.Ps[s]
+
+
     def search(self, canonicalBoard):
         """
         This function performs one iteration of MCTS. It is recursively called
